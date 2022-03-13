@@ -17,7 +17,7 @@ export class Service {
     }
 
 
-    async doSomething(speed: number, radius: number) {
-        
+    async doSomething(speed: number, radius: number) : Promise<number> {
+        return 7;
     }
 }
