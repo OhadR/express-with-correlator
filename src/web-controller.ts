@@ -22,7 +22,7 @@ app.get('/run/', async (req: express.Request, res: express.Response) => {
         logger.info(`received 'run' request`);
         const { speed, radius } = req.body;
 
-        const result = await Service.instance.doSomething();
+        const result = await new Service().doSomething();
 
         logger.info(`result: ${result}`);
         res.status(200).send({ result });
