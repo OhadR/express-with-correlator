@@ -1,6 +1,6 @@
 import * as express from 'express';
 import { Service } from "./service";
-const debug = require('debug')('user-action-controller');
+const debug = require('debug')('web-controller');
 
 const logger = require('log4js').getLogger();
 logger.level = 'info';
@@ -14,16 +14,15 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.listen(PORT, async() => {
-    logger.info(`smart-adas is listening on port ${PORT}!`);
-    // const redisClient = await getClient();
+    logger.info(`listening on port ${PORT}.`);
 });
 
-app.post('/run/', async (req: express.Request, res: express.Response) => {
+app.get('/run/', async (req: express.Request, res: express.Response) => {
     try {
-        logger.info(`received 'run' request: ${JSON.stringify(req.body)}`);
+        logger.info(`received 'run' request`);
         const { speed, radius } = req.body;
 
-        const result = await Service.instance.doSomething(speed, radius);
+        const result = await Service.instance.doSomething();
 
         logger.info(`result: ${result}`);
         res.status(200).send({ result });
