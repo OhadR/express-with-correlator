@@ -1,6 +1,7 @@
 import * as express from 'express';
 import { Service } from "./service";
 import * as correlator from 'correlation-id';
+require('./log-config');
 
 const logger = require('log4js').getLogger();
 logger.level = 'info';
