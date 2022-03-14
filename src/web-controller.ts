@@ -1,6 +1,6 @@
 import * as express from 'express';
 import { Service } from "./service";
-const debug = require('debug')('web-controller');
+import * as correlator from 'correlation-id';
 
 const logger = require('log4js').getLogger();
 logger.level = 'info';
@@ -19,13 +19,17 @@ app.listen(PORT, async() => {
 
 app.get('/run/', async (req: express.Request, res: express.Response) => {
     try {
-        logger.info(`received 'run' request`);
-        const { speed, radius } = req.body;
+        const correlatorId = Math.floor(Math.random() * 100000);
+        correlator.withId(correlatorId, async () => {
+            logger.info(`received 'run' request`);
 
-        const result = await new Service().doSomething();
+            const { speed, radius } = req.body;
 
-        logger.info(`result: ${result}`);
-        res.status(200).send({ result });
+            const result = await new Service().doSomething();
+
+            logger.info(`result: ${result}`);
+            res.status(200).send({ result });
+        });
 
     } catch (e) {
         logger.error(`Error: ${JSON.stringify(e.stack)}`, e.message);

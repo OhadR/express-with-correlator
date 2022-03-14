@@ -1,8 +1,21 @@
-const logger = require('log4js').getLogger();
-logger.level = 'info';
-logger.category = 'service';
+import * as correlator from 'correlation-id';
+import * as log4js from "log4js";
 
-const debug = require('debug')('authentication-flows-processor');
+log4js.configure({
+    appenders: {
+        out: { type: 'stdout', layout: {
+                type: 'pattern',
+                pattern: '%[[%d] [%p] %c [%x{user}]%] %m',
+                tokens: {
+                    user: function (logEvent) {
+                        return correlator.getId();
+                    }
+                }
+            }}
+    },
+    categories: { default: { appenders: ['out'], level: 'info' } }
+});
+const logger = log4js.getLogger();
 
 
 export class Service {
