@@ -6,10 +6,6 @@ logger.level = 'info';
 
 export class Service {
 
-    async sleep(seconds) {
-        return new Promise(resolve => setTimeout(resolve, seconds * 1000));
-    }
-
     async doSomething() : Promise<number> {
         const rand = Math.ceil(Math.random() * 6);
         logger.info(`doSomething(): method takes ${rand} secs`);
@@ -17,7 +13,11 @@ export class Service {
         return (rand % 2 === 0) ? await this.foo1() : await this.foo2();
     }
 
-    async foo1() {
+    private async sleep(seconds) {
+        return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+    }
+
+    private async foo1() {
         const rand = Math.ceil(Math.random() * 10);
         logger.info(`foo1(): method takes ${rand} secs`);
         await this.sleep(rand);
@@ -25,7 +25,7 @@ export class Service {
         return retVal + rand;
     }
 
-    async foo2() {
+    private async foo2() {
         const rand = Math.ceil(Math.random() * 10);
         logger.info(`foo2(): method takes ${rand} secs`);
         await this.sleep(rand);
