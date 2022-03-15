@@ -24,7 +24,7 @@ app.get('/run/', async (req: express.Request, res: express.Response) => {
         correlator.withId(correlatorId, async () => {
             logger.info(`received 'run' request`);
 
-            const { speed, radius } = req.body;
+            //extract data from request, etc...
 
             const result = await new Service().doSomething();
 
