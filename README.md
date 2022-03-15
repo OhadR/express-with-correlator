@@ -50,8 +50,8 @@ There are several ways to tackle this; I have chosen to use [correlationr-id](ht
 package:
 
 >Correlation id maintains a consistent id across asynchronous calls in node.js applications. This is extremely useful for 
-> logging purposes. For example within an API, each incoming request can be assigned an id that will be available in all 
-> function calls made processing that request, so we can see which requests caused errors.
+ logging purposes. For example within an API, each incoming request can be assigned an id that will be available in all 
+ function calls made processing that request, so we can see which requests caused errors.
 
 **VERY** important: note its compatibility:
 
@@ -96,6 +96,32 @@ into:
     logger.info(`[${correlator.getId()}] foo1(): method takes ${rand} secs`);
 
 This is a big big headache.
+
+Instead, we need to understand log4js a bit deeper. one of the pillars of log4js is [**appenders**](https://log4js-node.github.io/log4js-node/appenders.html). When the logger is configured,
+the appender is set. Appender can be console, file, etc. Full explanation of appenders, with list of built-in appenders and
+explanation on custom appenders can be found in the [docs](https://log4js-node.github.io/log4js-node/appenders.html). 
+
+But another pillar of log4js is [**layouts**]():
+
+>Layouts are functions used by appenders to format log events for output. They take a log event as an argument and return 
+a string. Log4js comes with several appenders built-in, and provides ways to create your own if these are not suitable.
+
+In other words, the following log line:
+
+    [2022-03-15T20:55:30.360] [INFO] [category-name] some message here
+
+is built by a layout function that gets the message - in this case 'some message here' - as a string argument, and return the following
+pattern: `%[[%d] [%p] %c%] %m%n`. See the [docs]() for explanation of what is d, p, c and so on. 
+
+So the fact that you can build your log lines any way you want is cool. For example, you can place the log level `%p` in any part
+of the log line, maybe wrap it with brackets, or even omit it at all. But one of the coolest thing, and very relevant to 
+our use case is `%x`. It lets you "add dynamic tokens to your log. Tokens are specified in the tokens parameter."
+
+>User-defined tokens can be either a string or a function. Functions will be passed the log event, and should return a string.
+ 
+Volla! This is exactly what we need! Remember the `correlator.getId()`? That would be our token!
+
+Thus, we can configure our layout to include...
 
 
 
