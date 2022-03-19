@@ -113,16 +113,29 @@ In other words, the following log line:
 is built by a layout function that gets the message - in this case 'some message here' - as a string argument, and return the following
 pattern: `%[[%d] [%p] %c%] %m%n`. See the [docs]() for explanation of what is d, p, c and so on. 
 
-So the fact that you can build your log lines any way you want is cool. For example, you can place the log level `%p` in any part
-of the log line, maybe wrap it with brackets, or even omit it at all. But one of the coolest thing, and very relevant to 
+The fact that you can build your log lines any way you want is cool. For example, you can place the log level `%p` in any part
+of the log line, wrap it with brackets, or omit it at all. But one of the coolest thing, and very relevant to 
 our use case is `%x`. It lets you "add dynamic tokens to your log. Tokens are specified in the tokens parameter."
 
 >User-defined tokens can be either a string or a function. Functions will be passed the log event, and should return a string.
- 
-Volla! This is exactly what we need! Remember the `correlator.getId()`? That would be our token!
 
-Thus, we can configure our layout to include...
+Voilà! This is exactly what we need! Remember the `correlator.getId()`? That would be our token!
+Thus, we can configure our layout to be:
 
+```
+{
+    type: 'pattern',
+    pattern: '%[[%d] [%p] %c [%x{user}]%] %m',
+    tokens: {
+        user: function (logEvent) {
+            return correlator.getId();
+        }
+    }
+}
+```
 
+If we configure our logger, or more precisely our appender, to contain the above layout, each log line will contain the 
+relevant correlator without changing or breaking any API. No need to pass it to the logger, no need to wrap the logger, because 
+it cannot be more elegant than this: we have a hook in the logger so it - the logger - can read the correlator.
 
 ![with-correlator](logs-with-correlator.JPG)
