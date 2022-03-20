@@ -29,6 +29,8 @@ For example, if we call 5 - only 5 - parallel calls to `/run`, the result would 
 
 this is impossible to debug or to analyze issues because we cannot tell which log comes from which run.
 
+## requirements
+
 **The challenge consists of 2 parts**:
 * First, indicating all logs from the same request with a unique correlator.
 * Second, adding this correlator to every log line without refactoring all the code.
@@ -40,7 +42,7 @@ this is impossible to debug or to analyze issues because we cannot tell which lo
 First things first: we will handle the correlator.
 
 In Java, for example, each call to the web-server is handled by a thread, and unless a new thread is created on purpose, the
-developer can always query for the thread-id, or store some data on the [ThreadLocal](https://docs.oracle.com/javase/7/docs/api/java/lang/ThreadLocal.html).
+developer can always query the thread-id by `Thread.currentThread()`, or store some data on the [ThreadLocal](https://docs.oracle.com/javase/7/docs/api/java/lang/ThreadLocal.html).
 Need to note that this pattern is relevant [not only for java](https://en.wikipedia.org/wiki/Thread-local_storage).
 Alas, node.js works differently and except the event-loop, all logic happens in the same worker thread.
 
@@ -75,8 +77,8 @@ The way to integrate this into my express server is this:
         } catch (e) ...
     });
 
-As we can see, the code remained as is except the fact that we generate a correlation-id (there are many other way to do this
-but to simplify the example I have used this), and then call `correlator.withId()` and let the original code run within the 
+As we can see, the code remained as is except the fact that we generate a correlation-id (there are many other ways to do this
+but I wanted to simplify the example), and then call `correlator.withId()` and let the original code run within the 
 correlation scope. correlation-id docs:
 
 ![docs-withId](docs-withId.JPG)
@@ -95,30 +97,36 @@ into:
 
 This is a big big headache.
 
-Instead, we need to understand log4js a bit deeper. one of the pillars of log4js is [**appenders**](https://log4js-node.github.io/log4js-node/appenders.html). When the logger is configured,
+Instead, we need to understand log4js a bit better. One of the pillars of log4js is [**appenders**](https://log4js-node.github.io/log4js-node/appenders.html). 
+When the logger is configured,
 the appender is set. Appender can be console, file, etc. Full explanation of appenders, with list of built-in appenders and
 explanation on custom appenders can be found in the [docs](https://log4js-node.github.io/log4js-node/appenders.html). 
 
-But another pillar of log4js is [**layouts**]():
+Another pillar of log4js is [**layouts**](https://log4js-node.github.io/log4js-node/layouts.html):
 
 >Layouts are functions used by appenders to format log events for output. They take a log event as an argument and return 
 a string. Log4js comes with several appenders built-in, and provides ways to create your own if these are not suitable.
+
+Each layout has a type. By default, it is `basic` and "output the timestamp, level, category, followed by the formatted log event data". 
 
 In other words, the following log line:
 
     [2022-03-15T20:55:30.360] [INFO] [category-name] some message here
 
 is built by a layout function that gets the message - in this case 'some message here' - as a string argument, and return the following
-pattern: `%[[%d] [%p] %c%] %m%n`. See the [docs]() for explanation of what is d, p, c and so on. 
+**pattern**: `%[[%d] [%p] %c%] %m%n`. See the layout docs for explanation of pattern format and what is d, p, c and so on. 
 
-The fact that you can build your log lines any way you want is cool. For example, you can place the log level `%p` in any part
-of the log line, wrap it with brackets, or omit it at all. But one of the coolest thing, and very relevant to 
-our use case is `%x`. It lets you "add dynamic tokens to your log. Tokens are specified in the tokens parameter."
+Fortunately, log4js lets you *modify* the pattern by using `type=pattern`.
+Thus, you can build your log lines any way you want. For example, you can place the log level `%p` in any part
+of the log line, wrap it with brackets, or omit it at all. 
+
+Furthermore, you can add user-defined tokens to be used in the 
+pattern by using `%x`. It lets you "add dynamic tokens to your log. Tokens are specified in the tokens parameter."
 
 >User-defined tokens can be either a string or a function. Functions will be passed the log event, and should return a string.
 
 Voilà! This is exactly what we need! Remember the `correlator.getId()`? That would be our token!
-Thus, we can configure our layout to be:
+Thus, we will configure our layout to be:
 
 ```
 {
@@ -135,5 +143,7 @@ Thus, we can configure our layout to be:
 If we configure our logger, or more precisely our appender, to contain the above layout, each log line will contain the 
 relevant correlator without changing or breaking any API. No need to pass it to the logger, no need to wrap the logger, because 
 it cannot be more elegant than this: we have a hook in the logger so it - the logger - can read the correlator.
+
+Accomplishing this, we will invoke our application again and see the results of 5 parallel calls:
 
 ![with-correlator](logs-with-correlator.JPG)
