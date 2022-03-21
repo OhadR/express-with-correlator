@@ -17,7 +17,7 @@ For simplicity, yet problematic enough to illustrate the challenge, we have the 
 Then it calls randomly `foo1()` or `foo2()`. Each one of them does similar thing (heavy work - random time of sleep) and calls
 randomly to another layer - `bar1()` or `bar2()`. 
 
-![illustration-app](illustration-app.JPG)
+![illustration-app](illustration-app-2.JPG)
 
 For this example it is important that every function sleeps random time
 because it illustrates real-life flow, where functions take different amount of time and logically call other functions. Thus, it
@@ -144,6 +144,11 @@ If we configure our logger, or more precisely our appender, to contain the above
 relevant correlator without changing or breaking any API. No need to pass it to the logger, no need to wrap the logger, because 
 it cannot be more elegant than this: we have a hook in the logger so it - the logger - can read the correlator.
 
-Accomplishing this, we will invoke our application again and see the results of 5 parallel calls:
+## result
+
+Now we will invoke our application again and see the results of 5 parallel calls:
 
 ![with-correlator](logs-with-correlator.JPG)
+
+
+Source code is available on GitHub: https://github.com/OhadR/express-with-correlator.
