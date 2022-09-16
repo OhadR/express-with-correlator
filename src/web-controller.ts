@@ -38,3 +38,25 @@ app.get('/run/', async (req: express.Request, res: express.Response) => {
     }
 });
 
+app.post('/exit/', async (req: express.Request, res: express.Response) => {
+    try {
+        logger.info(`received 'exit' request`);
+
+        process.exit(1);
+        res.status(200).send(0);
+
+
+    } catch (e) {
+        logger.error(`Error: ${JSON.stringify(e.stack)}`, e.message);
+        res.status(500).send(e);
+    }
+});
+
+process.on('beforeExit', (code) => {
+    console.log('Process beforeExit event with code: ', code);
+});
+
+process.on('exit', (code) => {
+    console.log('Process exit event with code: ', code);
+});
+
