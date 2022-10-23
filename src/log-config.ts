@@ -1,6 +1,10 @@
 import * as correlator from 'correlation-id';
 import { configure, getLogger, addLayout } from "log4js";
 
+//
+//this was we use the 'old' appender for regular logs, and a new json_appender for json logs. note how we write the correlatorId
+//
+
 addLayout("json", function (config) {
     return function (logEvent) {
         logEvent["sessionId"] = correlator.getId();
@@ -19,19 +23,13 @@ configure({
                     }
                 }
             }},
-        out2: { type: 'stdout', layout: {
+        json_appender: { type: 'stdout', layout: {
                 type: 'json',
                 separator: ",",
-                //pattern: '{%[[%d] [%p] %c [%x{user}]%] %m}',
-                tokens: {
-                    user: function (logEvent) {
-                        return correlator.getId();
-                    }
-                }
             }}
     },
-    categories: { default: { appenders: ['out', 'out2'], level: 'info' }
+    categories: { default: { appenders: ['out', 'json_appender'], level: 'info' }
         }
 });
 
-getLogger('log-config').info({m: 'logger is configured.'});
+getLogger('log-config').info('logger is configured.');
